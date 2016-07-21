@@ -11,18 +11,20 @@ class Audio:
 
     def __init__(self, filename=False):
         """
-        Load file content if filename
-        is provided
+        loadfile if filename is provided
         """
         self.fileloaded = False
         self.CHUNK = 1024
         if filename:
-            self.loadfile(filename)
-            
+            return self.loadfile(filename)
+        return True
+        
     def loadfile(self, filename):
         """
         Load Content from wave file 
-        of given filename
+        of given filename.
+        if file loaded, it returns True
+        else it returns False
         """
         print('>> loading file %s' % filename)
         wf = wave.open(filename, 'rb')
@@ -42,8 +44,13 @@ class Audio:
             self.filesize = self.nframes * self.samplewidth + 44
             self.duration = float(self.nframes / self.framerate)
             self.fileloaded = True
+            return True
+        return False
     
     def print_details(self):
+        """
+        print details of audio data
+        """
         if self.fileloaded:
             print(
                 "filename    : " + self.filename + '\n' +
@@ -83,25 +90,37 @@ class Audio:
             p.terminate()
 
     def remove_noise(self, noise_max_amp=3000):
+        """
+        Return New instance of Audio class which has frames value
+        with removed noise value (make amplitude of noise i.e.3000 to 
+        zero.
+        info: the audio sample is of 16 bit (2 bytes), there is 1024
+        samples in one frame. Byte are stored in Little Endian format
+        so get equivalent of 2byte in decimal format and if the equivalent
+        value is lesser than noise_max_amp(3000) then make these value zero.
+        """
         count = 0
         new_self = self
+        print(len(self.frames[0]))
         for i in range(0, len(self.frames)):
-            for j in range(0, len(self.frames[i])):
-                if self.frames[i][j] < 30:
-                    new_self.frames[i][j] = b'0'
-                    #print('chha!!')
-                    count += 1
+            for j in range(0, int(len(self.frames[i])), 2):
+                if self.frames[i][j:j+2].hex() <= hex(noise_max_amp):
+                    print(self.frames[i][j:j+2].hex(), end='/')
         print('count:', count)
         return new_self
+    
 
 def main(filename):
     audio = Audio(filename=filename)
     audio.print_details()
-    #audio.play()
-    new_audio = audio.remove_noise()
-    new_audio.play()
+    audio.play()
+    #new_audio = audio.remove_noise()
+    #new_audio.play()
 
 if __name__ == '__main__':
+    """
+    for testing purpose
+    """
     if len(sys.argv) < 2:
         print('Usage: python audio.py [filename]')
         sys.exit()
