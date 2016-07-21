@@ -67,4 +67,4 @@ target/
 *#*#
 
 #ignore filewith *_test.py extension, which are test program of modules
-*_test.*
+*_test*
