@@ -133,10 +133,11 @@ class Audio:
 
         for i in range(0, len(frame)):
             for j in range(0, len(frame[i]), 2):
-                if (frame[i][j+1]*(2**8)+frame[i][j]) <= noise_max_amp:
+                actual_value = frame[i][j+1]*(2**8)+frame[i][j]
+                if actual_value <= noise_max_amp:
                     frame[i][j+1] = frame[i][j] = 0
-                count += 1
-        
+                    count += 1
+                
         new_self.frames.clear()
         for i in range(0, frames_size):
             new_self.frames.append(bytes(frame[i]))
@@ -144,6 +145,17 @@ class Audio:
         print('size: ', len(frame[0]))
         print('count: ', count)
         return new_self
+
+    def write(self,filename):
+        """
+        write the audio data to a file
+        """
+        wf = wave.open(filename, 'wb')
+        wf.setnchannels(self.channels)
+        wf.setsampwidth(self.samplewidth)
+        wf.setframerate(self.framerate)
+        wf.writeframes(b''.join(self.frames))
+        wf.close()
 
 
 def main(filename):
