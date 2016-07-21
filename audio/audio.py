@@ -3,6 +3,7 @@ import pyaudio
 import datetime
 import sys
 
+
 class Audio:
     """
     This class open data from wave file and stores
@@ -16,8 +17,7 @@ class Audio:
         self.fileloaded = False
         self.CHUNK = 1024
         if filename:
-            return self.loadfile(filename)
-        return True
+            self.loadfile(filename)
         
     def loadfile(self, filename):
         """
@@ -36,7 +36,7 @@ class Audio:
             while len(data) > 0:
                 data = wf.readframes(self.CHUNK)
                 self.frames.append(data)
-
+            
             self.framerate = wf.getframerate()
             self.channels = wf.getnchannels()
             self.samplewidth = wf.getsampwidth()
@@ -44,7 +44,9 @@ class Audio:
             self.filesize = self.nframes * self.samplewidth + 44
             self.duration = float(self.nframes / self.framerate)
             self.fileloaded = True
+            print('>> file %s loaded' % filename)
             return True
+        print('>> couldnot load file %s' % filename)
         return False
     
     def print_details(self):
@@ -89,6 +91,26 @@ class Audio:
             stream.close()
             p.terminate()
 
+    def get_noise_amp(self):
+        """
+        Get the amplitude of noise by seeing in all the sample values.
+        Not quite good yet, need to implement.
+        """
+        all_values = []
+        for i in range(0, len(self.frames)):
+            for j in range(0, len(self.frames[i]), 2):
+                all_values.append(self.frames[i][j+1]*(2**8)+self.frames[i][j])
+        all_values.sort()
+        sum_values = []
+        n = 0
+        for i in range(len(all_values)):
+            if n > 1000:
+                break
+            if all_values[i] not in sum_values:
+                sum_values.append(all_values[i])
+                n += 1
+        return float(sum(sum_values)/n)
+        
     def remove_noise(self, noise_max_amp=3000):
         """
         Return New instance of Audio class which has frames value
@@ -99,23 +121,37 @@ class Audio:
         so get equivalent of 2byte in decimal format and if the equivalent
         value is lesser than noise_max_amp(3000) then make these value zero.
         """
+        # noise_amp = self.get_noise_amp()
+        # print('noise amp:', noise_amp)
         count = 0
         new_self = self
-        print(len(self.frames[0]))
-        for i in range(0, len(self.frames)):
-            for j in range(0, int(len(self.frames[i])), 2):
-                if self.frames[i][j:j+2].hex() <= hex(noise_max_amp):
-                    print(self.frames[i][j:j+2].hex(), end='/')
-        print('count:', count)
+        frame = []
+        frames_size = len(self.frames)
+
+        for i in range(0, frames_size):
+            frame.append(list(self.frames[i]))
+
+        for i in range(0, len(frame)):
+            for j in range(0, len(frame[i]), 2):
+                if (frame[i][j+1]*(2**8)+frame[i][j]) <= noise_max_amp:
+                    frame[i][j+1] = frame[i][j] = 0
+                count += 1
+        
+        new_self.frames.clear()
+        for i in range(0, frames_size):
+            new_self.frames.append(bytes(frame[i]))
+        
+        print('size: ', len(frame[0]))
+        print('count: ', count)
         return new_self
-    
+
 
 def main(filename):
     audio = Audio(filename=filename)
     audio.print_details()
-    audio.play()
-    #new_audio = audio.remove_noise()
-    #new_audio.play()
+    #audio.play()
+    new_audio = audio.remove_noise()
+    new_audio.play()
 
 if __name__ == '__main__':
     """
