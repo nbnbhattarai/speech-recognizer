@@ -1,0 +1,24 @@
+#+TITLE: TODO FOR PROJECT SPEECH RECOGNIZER
+#+AUTHOR: Nabin Bhattarai, Miran Ghimire, Bikash Gupta, Kshitiz Shrestha, Pabin Luitel, Sabin Silwal
+#+DATE: 2016-07-21
+
+* Project Speech-Recognizer ToDo
+** TODO Package Recorder
+   SCHEDULED: <2016-07-21 Thu>   
+   Package to Record Audio And save in wave file format
+** TODO Package Audio
+   SCHEDULED: <2016-07-23 Sat>
+   Package which stores audio file which is easy for 
+   further processing.
+** TODO Package LanguageModel
+   SCHEDULED: <2016-07-28 Thu>
+   Package which gives the language model of english language
+   languagemodel gives us the probable next word given previous 
+   words, so we can only test the audio data to those probable
+   next words.
+   In this language model we doesn't use punctuations, we use words
+   and we don't lemmatize words. words are used without modification.
+** TODO Recognizer
+   SCHEDULED: <2016-08-10 Wed>
+   Main Package which takes audio raw data of all words in sequence 
+   and finds out the corresponding word.
