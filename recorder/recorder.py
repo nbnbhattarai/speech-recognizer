@@ -31,7 +31,7 @@ class Recorder:
                              frames_per_buffer=self.CHUNK)
         print('>> recording...')
         
-        self.frames = []
+        frames = []
         for i in range(0, int(self.RATE / self.CHUNK * record_seconds)):
             data = self.stream.read(self.CHUNK)
             curr_sec = int(i/self.RATE * self.CHUNK)
@@ -41,7 +41,7 @@ class Recorder:
                      str(datetime.timedelta(seconds=(record_seconds-1))),
                      percent), end='')
             
-            self.frames.append(data)
+            frames.append(data)
         
         print('\n>> done!')
 
@@ -53,11 +53,26 @@ class Recorder:
         wf.setnchannels(self.CHANNELS)
         wf.setsampwidth(p.get_sample_size(self.FORMAT))
         wf.setframerate(self.RATE)
-        wf.writeframes(b''.join(self.frames))
+        wf.writeframes(b''.join(frames))
         print('>> file %s saved!!' % outfilename)
         wf.close()
 
-
-    def remove_noise(self, noise_amp=3000):
-
-    
+    def remove_noise(self, filename, noise_amp=3000):
+        wf = wave.open(filename, 'rb')
+        frames  = wf.readframes(self.CHUNK)
+        frames_nonoise = []
+        for frame in frames:
+            if abs(frame) <= noise_amp:
+                frame = 0
+            frames_nonoise.append(frame)
+        wf.close()
+        
+        p = pyaudio.PyAudio()
+        
+        wf = wave.open(filename+'-nonoise', 'wb')
+        wf.setnchannels(self.CHANNELS)
+        wf.setsampwidth(p.get_sample_size(self.FORMAT))
+        wf.setframerate(self.RATE)
+        wf.writeframes(b''.join(frames_nonoise))
+        print('>> file %s saved!' % (filename+'-nonoise'))
+        wf.close()
