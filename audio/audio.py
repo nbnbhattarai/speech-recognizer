@@ -82,14 +82,28 @@ class Audio:
             stream.close()
             p.terminate()
 
+    def remove_noise(self, noise_max_amp=3000):
+        count = 0
+        new_self = self
+        for i in range(0, len(self.frames)):
+            for j in range(0, len(self.frames[i])):
+                if self.frames[i][j] < 30:
+                    new_self.frames[i][j] = b'0'
+                    #print('chha!!')
+                    count += 1
+        print('count:', count)
+        return new_self
 
 def main(filename):
     audio = Audio(filename=filename)
     audio.print_details()
-    audio.play()
+    #audio.play()
+    new_audio = audio.remove_noise()
+    new_audio.play()
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
+        print('Usage: python audio.py [filename]')
         sys.exit()
     filename = sys.argv[1]
     main(filename)
