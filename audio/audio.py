@@ -1,7 +1,7 @@
 import wave
 import pyaudio
 import datetime
-
+import sys
 
 class Audio:
     """
@@ -14,28 +14,52 @@ class Audio:
         Load file content if filename
         is provided
         """
-        if not filename:
-            self.filename = filename
-            self.loadfile(self.filename)
+        self.fileloaded = False
         self.CHUNK = 1024
+        if filename:
+            self.loadfile(filename)
             
     def loadfile(self, filename):
         """
         Load Content from wave file 
         of given filename
         """
+        print('>> loading file %s' % filename)
         wf = wave.open(filename, 'rb')
-        self.frames = wf.readframes(self.CHUNK)
-        self.framerate = wf.getframerate()
-        self.channels = wf.getchannels()
-        self.samplewidth = wf.getsampwidth()
-        self.duration = float(len(self.frames)/self.framerate)
+        if wf:
+            self.filename = filename
+            
+            self.frames = []
+            data = wf.readframes(self.CHUNK)
+            while len(data) > 0:
+                data = wf.readframes(self.CHUNK)
+                self.frames.append(data)
+
+            self.framerate = wf.getframerate()
+            self.channels = wf.getnchannels()
+            self.samplewidth = wf.getsampwidth()
+            self.nframes = wf.getnframes()
+            self.filesize = self.nframes * self.samplewidth + 44
+            self.duration = float(self.nframes / self.framerate)
+            self.fileloaded = True
+    
+    def print_details(self):
+        if self.fileloaded:
+            print(
+                "filename    : " + self.filename + '\n' +
+                "filesize    : " + str(self.filesize) + '\n' +
+                "framerate   : " + str(self.framerate) + '\n' +
+                "len(frames) : " + str(len(self.frames)) + '\n' +
+                "channels    : " + str(self.channels) + '\n' +
+                "samplewidth : " + str(self.samplewidth) + '\n' +
+                "duration    : " + str(self.duration)
+                )
         
     def play(self):
         """
         Play audio file
         """
-        if len(self.frames) <= 0:
+        if not self.fileloaded:
             print('>> no audio file loaded!!')
         else:
             p = pyaudio.PyAudio()
@@ -46,21 +70,26 @@ class Audio:
             
             for i in range(0, len(self.frames)):
                 data = self.frames[i]
-                percent = float(i/self.duration * 100)
-                curr_sec = self.duration * percent
+                percent = i/len(self.frames)
+                curr_sec = percent * self.duration
                 print("\r %s / %s (%f%%)"
                       % (str(datetime.timedelta(seconds=int(curr_sec))),
                          str(datetime.timedelta(seconds=int(self.duration))),
-                         percent), end='')
+                         percent * 100), end='')
                 stream.write(data)
-
+            print('\n')
             stream.stop_stream()
             stream.close()
             p.terminate()
 
 
-def main():
-
+def main(filename):
+    audio = Audio(filename=filename)
+    audio.print_details()
+    audio.play()
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) < 2:
+        sys.exit()
+    filename = sys.argv[1]
+    main(filename)
