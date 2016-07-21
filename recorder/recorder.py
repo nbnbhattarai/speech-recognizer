@@ -1,5 +1,6 @@
 import pyaudio
 import wave
+import sys
 
 ## to show second to h:m:s format
 import datetime
@@ -59,11 +60,11 @@ class Recorder:
 
     def remove_noise(self, filename, noise_amp=3000):
         wf = wave.open(filename, 'rb')
-        frames  = wf.readframes(self.CHUNK)
+        frames = wf.readframes(self.CHUNK)
         frames_nonoise = []
         for frame in frames:
             if abs(frame) <= noise_amp:
-                frame = 0
+                frame -= frame
             frames_nonoise.append(frame)
         wf.close()
         
@@ -76,3 +77,14 @@ class Recorder:
         wf.writeframes(b''.join(frames_nonoise))
         print('>> file %s saved!' % (filename+'-nonoise'))
         wf.close()
+
+
+def main(filename, duration):
+    recorder = Recorder()
+    recorder.record_audio(filename, duration)
+
+if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        print('Usage: python recorder.py [filename] [duration in second]')
+        sys.exit()
+    main(sys.argv[1], int(sys.argv[2]))
