@@ -36,7 +36,6 @@ class Audio:
             while len(data) > 0:
                 data = wf.readframes(self.CHUNK)
                 self.frames.append(data)
-            
             self.framerate = wf.getframerate()
             self.channels = wf.getnchannels()
             self.samplewidth = wf.getsampwidth()
@@ -129,13 +128,15 @@ class Audio:
         frames_size = len(self.frames)
 
         for i in range(0, frames_size):
+            #print('len:', len(self.frames[i]))
             frame.append(list(self.frames[i]))
 
         for i in range(0, len(frame)):
+            #print('len:', len(frame[i]))
             for j in range(0, len(frame[i]), 2):
                 actual_value = frame[i][j+1]*(2**8)+frame[i][j]
                 if actual_value <= noise_max_amp:
-                    frame[i][j+1] = frame[i][j] = 0
+                    frame[i][j+1], frame[i][j] = 0, 0
                     count += 1
                 
         new_self.frames.clear()
@@ -145,8 +146,8 @@ class Audio:
         print('size: ', len(frame[0]))
         print('count: ', count)
         return new_self
-
-    def write(self,filename):
+    
+    def write(self, filename):
         """
         write the audio data to a file
         """
@@ -161,9 +162,10 @@ class Audio:
 def main(filename):
     audio = Audio(filename=filename)
     audio.print_details()
-    #audio.play()
+    audio.play()
     new_audio = audio.remove_noise()
     new_audio.play()
+    new_audio.write(filename+'-nonoise')
 
 if __name__ == '__main__':
     """
