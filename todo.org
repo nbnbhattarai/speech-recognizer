@@ -20,5 +20,11 @@
    and we don't lemmatize words. words are used without modification.
 ** TODO Recognizer
    SCHEDULED: <2016-08-10 Wed>
-   Main Package which takes audio raw data of all words in sequence 
-   and finds out the corresponding word.
+   We are going to use HMM model to findout the possible next phonems according to their
+   probability (having large probability is most probable phonems), 
+   we train out main recognizer_core to findout the most probable phonems next in audio
+   data, on that list of phonems for every phonems we find out next phonems and use HMM
+   to find out most probable phonems, and according to those and previous phonems we findout
+   the next phonems. Like this we get list of list of phonems and apply phonem model first
+   to findout what the words might be, and with these words we use language model to find
+   out what the sentences might be. The most probable sentence is the final output.
