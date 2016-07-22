@@ -2,18 +2,17 @@ import recorder
 import sys
 
 
-def usage():
+def print_usage():
     print('Usage: python speech_recognizer [options] [filename]')
 
 
 def print_help():
+    print_usage()
     print(
-        "Help"+
-        "==============="+
-        "Options."+
-        "-r  --record       record and translate audio"+
-        "-f  --file         translate from audio file"+
-        "-h  --help         print help."
+        "\nBasic Options:\n" +
+        " -r  --record                  record and translate audio\n" +
+        " -f  --file [filename]         translate from audio file\n" +
+        " -h  --help                    print help.\n"
         )
 
 
@@ -35,6 +34,8 @@ def speech_recognizer_file(filename):
 if __name__ == '__main__':
     argv = sys.argv
     argc = len(argv)
+    if argc < 2:
+        print_usage()
     if '-f' in argv or '--file' in argv:
         if '-f' in argv:
             f_index = argv.index('-f')
