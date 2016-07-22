@@ -159,20 +159,26 @@ class Audio:
         wf.close()
 
 
-def main(filename):
+def main(filename, outfile=False):
     audio = Audio(filename=filename)
     audio.print_details()
+    print('>> opened Audio file')
     audio.play()
     new_audio = audio.remove_noise()
+    print('>> Audio with remove_noise() applied')
     new_audio.play()
-    new_audio.write(filename+'-nonoise')
+    if outfilename:
+        new_audio.write(outfile)
 
 if __name__ == '__main__':
     """
     for testing purpose
     """
     if len(sys.argv) < 2:
-        print('Usage: python audio.py [filename]')
+        print('Usage: python audio.py [filename] [outputfilename-optional]')
         sys.exit()
+    outfilename = False
+    if len(sys.argv) == 3:
+        outfilename = sys.argv[2]
     filename = sys.argv[1]
-    main(filename)
+    main(filename, outfilename)
