@@ -26,9 +26,10 @@ class Audio:
         if file loaded, it returns True
         else it returns False
         """
-        print('>> loading file %s' % filename)
+        print('>> loading file %s' % filename, end='')
         wf = wave.open(filename, 'rb')
         if wf:
+            print(' [ done ]')
             self.filename = filename
             
             self.frames = []
@@ -43,9 +44,8 @@ class Audio:
             self.filesize = self.nframes * self.samplewidth + 44
             self.duration = float(self.nframes / self.framerate)
             self.fileloaded = True
-            print('>> file %s loaded' % filename)
             return True
-        print('>> couldnot load file %s' % filename)
+        print(' [ error ]')
         return False
     
     def print_details(self):
@@ -67,9 +67,11 @@ class Audio:
         """
         Play audio file
         """
+        print('>> playing audio', end='')
         if not self.fileloaded:
-            print('>> no audio file loaded!!')
+            print(' [ error ]')
         else:
+            print(' [ started ]')
             p = pyaudio.PyAudio()
             stream = p.open(format=p.get_format_from_width(self.samplewidth),
                             channels=self.channels,
@@ -122,11 +124,11 @@ class Audio:
         """
         # noise_amp = self.get_noise_amp()
         # print('noise amp:', noise_amp)
+        print('>> removing noise started', end='')        
         count = 0
         new_self = self
         frame = []
         frames_size = len(self.frames)
-
         for i in range(0, frames_size):
             #print('len:', len(self.frames[i]))
             frame.append(list(self.frames[i]))
@@ -142,7 +144,8 @@ class Audio:
         new_self.frames.clear()
         for i in range(0, frames_size):
             new_self.frames.append(bytes(frame[i]))
-        
+
+        print(' [ done ]')
         print('size: ', len(frame[0]))
         print('count: ', count)
         return new_self
@@ -162,13 +165,13 @@ class Audio:
 def main(filename, outfile=False):
     audio = Audio(filename=filename)
     audio.print_details()
-    print('>> opened Audio file')
-    audio.play()
+    # audio.play()
     new_audio = audio.remove_noise()
-    print('>> Audio with remove_noise() applied')
-    new_audio.play()
+    # new_audio.play()
     if outfilename:
+        print('>> writing to file %s.' % outfile, end='')
         new_audio.write(outfile)
+        print(' [ done ]')
 
 if __name__ == '__main__':
     """
