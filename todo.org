@@ -3,7 +3,7 @@
 #+DATE: 2016-07-21
 
 * Project Speech-Recognizer ToDo
-** TODO Package Recorder
+** DONE Package Recorder
    SCHEDULED: <2016-07-21 Thu>   
    Package to Record Audio And save in wave file format
 ** TODO Package Audio
