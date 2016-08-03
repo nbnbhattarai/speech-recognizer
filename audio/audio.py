@@ -15,13 +15,17 @@ class Audio:
         loadfile if filename is provided
         """
         self.fileloaded = False
-        self.CHUNK = 1024
+        # chunk value changed from 1024 to 400 to perform
+        # Fourier transform and get phonems (for acoustic model)
+        self.CHUNK = 400
+        # it contains all sample values in decimal format
+        self.frames_dec = []
         if filename:
             self.loadfile(filename)
-        
+
     def loadfile(self, filename):
         """
-        Load Content from wave file 
+        Load Content from wave file
         of given filename.
         if file loaded, it returns True
         else it returns False
@@ -31,7 +35,7 @@ class Audio:
         if wf:
             print(' [ done ]')
             self.filename = filename
-            
+
             self.frames = []
             data = wf.readframes(self.CHUNK)
             while len(data) > 0:
@@ -44,10 +48,16 @@ class Audio:
             self.filesize = self.nframes * self.samplewidth + 44
             self.duration = float(self.nframes / self.framerate)
             self.fileloaded = True
+            # this makes list of all sampled value in decimal format
+            # in a list
+            for frame in self.frames:
+                for i in range(0, self.CHUNK-2, 2):
+                    self.frames_dec.append(int.from_bytes(frame[i:i+2],
+                                                          byteorder='little'))
             return True
         print(' [ error ]')
         return False
-    
+
     def print_details(self):
         """
         print details of audio data
@@ -149,7 +159,7 @@ class Audio:
         print('size: ', len(frame[0]))
         print('count: ', count)
         return new_self
-    
+
     def write(self, filename):
         """
         write the audio data to a file
@@ -165,8 +175,9 @@ class Audio:
 def main(filename, outfile=False):
     audio = Audio(filename=filename)
     audio.print_details()
-    # audio.play()
-    new_audio = audio.remove_noise()
+    print('type:', type(audio.frames[0]), 'size: ', len(audio.frames[0]))
+    audio.play()
+    # new_audio = audio.remove_noise()
     # new_audio.play()
     if outfilename:
         print('>> writing to file %s.' % outfile, end='')
