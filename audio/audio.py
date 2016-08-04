@@ -51,9 +51,11 @@ class Audio:
             # this makes list of all sampled value in decimal format
             # in a list
             for frame in self.frames:
-                for i in range(0, self.CHUNK-2, 2):
-                    self.frames_dec.append(int.from_bytes(frame[i:i+2],
-                                                          byteorder='little'))
+                if frame:
+                    for i in range(0, len(frame), 2):
+                        self.frames_dec.append(int.from_bytes(
+                            frame[i:i+2], byteorder='little')
+                        )
             return True
         print(' [ error ]')
         return False
@@ -121,11 +123,11 @@ class Audio:
                 sum_values.append(all_values[i])
                 n += 1
         return float(sum(sum_values)/n)
-        
+
     def remove_noise(self, noise_max_amp=3000):
         """
         Return New instance of Audio class which has frames value
-        with removed noise value (make amplitude of noise i.e.3000 to 
+        with removed noise value (make amplitude of noise i.e.3000 to
         zero.
         info: the audio sample is of 16 bit (2 bytes), there is 1024
         samples in one frame. Byte are stored in Little Endian format
@@ -134,23 +136,23 @@ class Audio:
         """
         # noise_amp = self.get_noise_amp()
         # print('noise amp:', noise_amp)
-        print('>> removing noise started', end='')        
+        print('>> removing noise started', end='')
         count = 0
         new_self = self
         frame = []
         frames_size = len(self.frames)
         for i in range(0, frames_size):
-            #print('len:', len(self.frames[i]))
+            # print('len:', len(self.frames[i]))
             frame.append(list(self.frames[i]))
 
         for i in range(0, len(frame)):
-            #print('len:', len(frame[i]))
+            # print('len:', len(frame[i]))
             for j in range(0, len(frame[i]), 2):
                 actual_value = frame[i][j+1]*(2**8)+frame[i][j]
                 if actual_value <= noise_max_amp:
                     frame[i][j+1], frame[i][j] = 0, 0
                     count += 1
-                
+
         new_self.frames.clear()
         for i in range(0, frames_size):
             new_self.frames.append(bytes(frame[i]))
@@ -177,8 +179,8 @@ def main(filename, outfile=False):
     audio.print_details()
     print('type:', type(audio.frames[0]), 'size: ', len(audio.frames[0]))
     audio.play()
-    # new_audio = audio.remove_noise()
-    # new_audio.play()
+    new_audio = audio.remove_noise()
+    new_audio.play()
     if outfilename:
         print('>> writing to file %s.' % outfile, end='')
         new_audio.write(outfile)
