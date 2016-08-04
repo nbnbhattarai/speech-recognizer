@@ -2,6 +2,7 @@ import wave
 import pyaudio
 import datetime
 import sys
+import numpy.fft as fft
 
 
 class Audio:
@@ -59,6 +60,14 @@ class Audio:
             return True
         print(' [ error ]')
         return False
+
+    def fft(self):
+        """
+        return list containing result from the
+        fast fourier transform of sample values of
+        audio signal
+        """
+        return fft.fft(self.frames_dec)
 
     def print_details(self):
         """
