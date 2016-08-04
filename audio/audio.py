@@ -67,7 +67,10 @@ class Audio:
         fast fourier transform of sample values of
         audio signal
         """
-        return fft.fft(self.frames_dec)
+        result = []
+        for i in range(0, len(self.frames_dec), 400):
+            result.extend(list(fft.fft(self.frames_dec[i:i+400])))
+        return result
 
     def print_details(self):
         """
