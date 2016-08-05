@@ -11,7 +11,7 @@ class Audio:
     in convenient way for processing.
     """
 
-    def __init__(self, filename=False):
+    def __init__(self, filename=False, frames=None):
         """
         loadfile if filename is provided
         """
@@ -23,11 +23,46 @@ class Audio:
         self.frames_dec = []
         if filename:
             self.loadfile(filename)
+        elif frames:
+            self.loadfromframes(frames)
 
-    def loadfile(self, filename):
+    def get_decimal_amps(self):
         """
-        Load Content from wave file
-        of given filename.
+        it calculates the decimal equivalent of all the samples
+        and store it's value in self.framed_dec list object.
+        It is used for further processing of audio signal.
+        """
+        for frame in self.frames:
+                if frame:
+                    for i in range(0, len(frame), 2):
+                        self.frames_dec.append(int.from_bytes(
+                            frame[i:i+2], byteorder='little')
+                        )
+
+    def loadfromframes(self, frames,
+                       framerate=8000,
+                       channels=1,
+                       samplewidth=2):
+        """
+        Load audio data from list of frames data
+        it is assumed to have chunk size of 400
+        """
+        self.frames = frames
+        self.framerate = framerate
+        self.channels = channels
+        self.samplewidth = samplewidth
+        self.nframes = len(frames)
+        self.filesize = self.nframes * self.samplewidth + 44
+        self.duration = float(self.nframes / self.framerate)
+        self.loaded = True
+
+        self.get_decimal_amps()
+
+        return True
+
+    def loadfromfile(self, filename):
+        """
+        Load Content from wave file of given filename.
         if file loaded, it returns True
         else it returns False
         """
@@ -49,14 +84,9 @@ class Audio:
             self.filesize = self.nframes * self.samplewidth + 44
             self.duration = float(self.nframes / self.framerate)
             self.fileloaded = True
-            # this makes list of all sampled value in decimal format
-            # in a list
-            for frame in self.frames:
-                if frame:
-                    for i in range(0, len(frame), 2):
-                        self.frames_dec.append(int.from_bytes(
-                            frame[i:i+2], byteorder='little')
-                        )
+
+            self.get_decimal_amps()
+
             return True
         print(' [ error ]')
         return False
@@ -86,7 +116,7 @@ class Audio:
                 "samplewidth : " + str(self.samplewidth) + '\n' +
                 "duration    : " + str(self.duration)
                 )
-        
+
     def play(self):
         """
         Play audio file
