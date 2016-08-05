@@ -5,6 +5,10 @@
 ### Programming Language
 * Python
 
+### Dependencies
+* PyAudio _pyaudio c library is needed_
+* numpy
+ 
 ## Developers
 * [Nabin Bhattarai](mailto:070bct52@ioe.edu.np)
 * [Miran Ghimire](mailto:070bct521@ioe.edu.np)
