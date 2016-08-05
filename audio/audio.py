@@ -3,7 +3,8 @@ import pyaudio
 import datetime
 import sys
 import numpy.fft as fft
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 class Audio:
     """
@@ -98,9 +99,29 @@ class Audio:
         audio signal
         """
         result = []
-        for i in range(0, len(self.frames_dec), 400):
-            result.extend(list(fft.fft(self.frames_dec[i:i+400])))
+
+        # fourier transform are calculated for 80 samples
+        # and for 80 sample 60 sample are overlapped for
+        # another fourier transform (75% overlap)
+        for i in range(0, len(self.frames_dec), 20):
+            result.extend(list(fft.fft(self.frames_dec[i:i+80])))
+
+        self.freq = result
+
         return result
+
+    def plot_fftdata(self):
+        fftdata = self.fft()
+        # N = len(fftdata)  # length of samples
+        # T = 1.0/float(self.framerate)  # sample spacing
+
+        xf = np.linspace(0.0, float(self.framerate), len(fftdata))
+
+        fig, ax = plt.subplots()
+
+        ax.plot(xf, np.abs(np.asarray(fftdata)[:]))
+
+        plt.show()
 
     def print_details(self):
         """
