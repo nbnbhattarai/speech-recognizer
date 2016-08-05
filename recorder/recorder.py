@@ -2,8 +2,9 @@ import pyaudio
 import wave
 import sys
 
-## to show second to h:m:s format
+# to show second to h:m:s format
 import datetime
+
 
 class Recorder:
     """
@@ -12,7 +13,7 @@ class Recorder:
     """
     def __init__(self, format=pyaudio.paInt16,
                  channels=1,
-                 rate=44100):
+                 rate=8000):
         """
         Initialize default values(specifications)
         of recording audio_file
