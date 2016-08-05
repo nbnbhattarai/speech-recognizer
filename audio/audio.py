@@ -13,7 +13,7 @@ class Audio:
 
     def __init__(self, filename=False, frames=None):
         """
-        loadfile if filename is provided
+        loadfromfile if filename is provided
         """
         self.fileloaded = False
         # chunk value changed from 1024 to 400 to perform
@@ -22,7 +22,7 @@ class Audio:
         # it contains all sample values in decimal format
         self.frames_dec = []
         if filename:
-            self.loadfile(filename)
+            self.loadfromfile(filename)
         elif frames:
             self.loadfromframes(frames)
 
@@ -122,7 +122,7 @@ class Audio:
         Play audio file
         """
         print('>> playing audio', end='')
-        if not self.fileloaded:
+        if not (self.fileloaded or self.loaded):
             print(' [ error ]')
         else:
             print(' [ started ]')
@@ -131,11 +131,11 @@ class Audio:
                             channels=self.channels,
                             rate=self.framerate,
                             output=True)
-            
+
             for i in range(0, len(self.frames)):
                 data = self.frames[i]
-                percent = i/len(self.frames)
-                curr_sec = percent * self.duration
+                percent = float(i/len(self.frames))
+                curr_sec = float(percent * self.duration)
                 print("\r %s / %s (%f%%)"
                       % (str(datetime.timedelta(seconds=int(curr_sec))),
                          str(datetime.timedelta(seconds=int(self.duration))),
