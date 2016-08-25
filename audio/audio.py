@@ -21,6 +21,7 @@ class Audio:
         # chunk value changed from 1024 to 400 to perform
         # Fourier transform and get phonems (for acoustic model)
         self.CHUNK = 400
+        self.sampledata = []    # sample data in decimal format
         # it contains all sample values in decimal format
         self.frames_dec = []
         if filename:
@@ -34,12 +35,19 @@ class Audio:
         and store it's value in self.framed_dec list object.
         It is used for further processing of audio signal.
         """
+        self.frames_dec = []
         for frame in self.frames:
+            dt = []
             if frame:
                 for i in range(0, len(frame), 2):
-                    self.frames_dec.append(int.from_bytes(
-                        frame[i:i + 2], byteorder='little')
-                    )
+                    dt = []
+                    dt.append(frame[i])
+                    dt.append(frame[i + 1])
+                    bt_dt = bytes(dt)
+                    decimal_val = int.from_bytes(
+                        bt_dt, byteorder='little', signed=True)
+                    # print(decimal_val)
+                    self.frames_dec.append(decimal_val)
 
     def loadfromframes(self, frames,
                        framerate=8000,
@@ -75,10 +83,10 @@ class Audio:
             self.filename = filename
 
             self.frames = []
-            data = wf.readframes(self.CHUNK)
-            while len(data) > 0:
-                data = wf.readframes(self.CHUNK)
-                self.frames.append(data)
+            self.sampdata = bytes(wf.readframes(wf.getnframes()))
+            for i in range(0, len(self.sampdata), self.CHUNK):
+                self.frames.append(self.sampdata[i:i + self.CHUNK])
+
             self.framerate = wf.getframerate()
             self.channels = wf.getnchannels()
             self.samplewidth = wf.getsampwidth()
@@ -116,6 +124,7 @@ class Audio:
         # T = 1.0/float(self.framerate)  # sample spacing
         self.normalized_data = np.array(self.frames_dec)
         self.normalized_data = self.normalized_data / (2**15)
+        print(list(self.normalized_data))
         x_time = np.array(range(0, len(self.frames_dec))) / self.framerate
         print('nd:', self.normalized_data[:10])
         fig, ax = plt.subplots()
@@ -274,6 +283,12 @@ if __name__ == '__main__':
     """
     for testing purpose
     """
+    aud = Audio()
+    aud.loadfromfile('../data/audio/test/1_hello.wav')
+    aud.get_decimal_amps()
+    # print(aud.frames_dec)
+    # aud.plot_amp()
+    aud.plot_fftdata()
     if len(sys.argv) < 2:
         print('Usage: python audio.py [filename] [outputfilename-optional]')
         sys.exit()
