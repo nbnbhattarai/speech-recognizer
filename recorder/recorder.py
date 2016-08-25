@@ -12,6 +12,7 @@ class Recorder:
     This class help to record audio in RAW format
     (WAVE) format.
     """
+
     def __init__(self, format=pyaudio.paInt16,
                  channels=1,
                  rate=8000):
@@ -42,11 +43,11 @@ class Recorder:
         frames = []
         for i in range(0, int(self.RATE / self.CHUNK * record_seconds)):
             data = self.stream.read(self.CHUNK)
-            curr_sec = int(i/self.RATE * self.CHUNK)
+            curr_sec = int(i / self.RATE * self.CHUNK)
             percent = curr_sec / record_seconds * 100
             print("\r %s / %s (%f%%)"
                   % (str(datetime.timedelta(seconds=curr_sec)),
-                     str(datetime.timedelta(seconds=(record_seconds-1))),
+                     str(datetime.timedelta(seconds=(record_seconds - 1))),
                      percent), end='')
 
             frames.append(data)

@@ -6,6 +6,7 @@ import numpy.fft as fft
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 class Audio:
     """
     This class open data from wave file and stores
@@ -34,11 +35,11 @@ class Audio:
         It is used for further processing of audio signal.
         """
         for frame in self.frames:
-                if frame:
-                    for i in range(0, len(frame), 2):
-                        self.frames_dec.append(int.from_bytes(
-                            frame[i:i+2], byteorder='little')
-                        )
+            if frame:
+                for i in range(0, len(frame), 2):
+                    self.frames_dec.append(int.from_bytes(
+                        frame[i:i + 2], byteorder='little')
+                    )
 
     def loadfromframes(self, frames,
                        framerate=8000,
@@ -103,19 +104,32 @@ class Audio:
         # fourier transform are calculated for 80 samples
         # and for 80 sample 60 sample are overlapped for
         # another fourier transform (75% overlap)
-        for i in range(0, len(self.frames_dec), 20):
-            result.extend(list(fft.fft(self.frames_dec[i:i+80])))
+        for i in range(0, len(self.frames_dec), 80):
+            result.extend(list(fft.fft(self.frames_dec[i:i + 80])))
 
         self.freq = result
 
         return result
+
+    def plot_amp(self):
+        # N = len(fftdata)  # length of samples
+        # T = 1.0/float(self.framerate)  # sample spacing
+        self.normalized_data = np.array(self.frames_dec)
+        self.normalized_data = self.normalized_data / (2**15)
+        x_time = np.array(range(0, len(self.frames_dec))) / self.framerate
+        print('nd:', self.normalized_data[:10])
+        fig, ax = plt.subplots()
+
+        ax.plot(x_time, self.normalized_data)
+
+        plt.show()
 
     def plot_fftdata(self):
         fftdata = self.fft()
         # N = len(fftdata)  # length of samples
         # T = 1.0/float(self.framerate)  # sample spacing
 
-        xf = np.linspace(0.0, float(self.framerate), len(fftdata))
+        xf = np.linspace(0.0, float(self.framerate), len(self.frames_dec))
 
         fig, ax = plt.subplots()
 
@@ -136,7 +150,7 @@ class Audio:
                 "channels    : " + str(self.channels) + '\n' +
                 "samplewidth : " + str(self.samplewidth) + '\n' +
                 "duration    : " + str(self.duration)
-                )
+            )
 
     def play(self):
         """
@@ -155,7 +169,7 @@ class Audio:
 
             for i in range(0, len(self.frames)):
                 data = self.frames[i]
-                percent = float(i/len(self.frames))
+                percent = float(i / len(self.frames))
                 curr_sec = float(percent * self.duration)
                 print("\r %s / %s (%f%%)"
                       % (str(datetime.timedelta(seconds=int(curr_sec))),
@@ -175,7 +189,8 @@ class Audio:
         all_values = []
         for i in range(0, len(self.frames)):
             for j in range(0, len(self.frames[i]), 2):
-                all_values.append(self.frames[i][j+1]*(2**8)+self.frames[i][j])
+                all_values.append(
+                    self.frames[i][j + 1] * (2**8) + self.frames[i][j])
         all_values.sort()
         sum_values = []
         n = 0
@@ -185,7 +200,7 @@ class Audio:
             if all_values[i] not in sum_values:
                 sum_values.append(all_values[i])
                 n += 1
-        return float(sum(sum_values)/n)
+        return float(sum(sum_values) / n)
 
     def remove_noise(self, noise_max_amp=3000):
         """
@@ -211,9 +226,9 @@ class Audio:
         for i in range(0, len(frame)):
             # print('len:', len(frame[i]))
             for j in range(0, len(frame[i]), 2):
-                actual_value = frame[i][j+1]*(2**8)+frame[i][j]
+                actual_value = frame[i][j + 1] * (2**8) + frame[i][j]
                 if actual_value <= noise_max_amp:
-                    frame[i][j+1], frame[i][j] = 0, 0
+                    frame[i][j + 1], frame[i][j] = 0, 0
                     count += 1
 
         new_self.frames.clear()
@@ -229,12 +244,17 @@ class Audio:
         """
         write the audio data to a file
         """
-        wf = wave.open(filename, 'wb')
-        wf.setnchannels(self.channels)
-        wf.setsampwidth(self.samplewidth)
-        wf.setframerate(self.framerate)
-        wf.writeframes(b''.join(self.frames))
-        wf.close()
+        print('Writing Audio file .')
+        try:
+            wf = wave.open(filename, 'wb')
+            wf.setnchannels(self.channels)
+            wf.setsampwidth(self.samplewidth)
+            wf.setframerate(self.framerate)
+            wf.writeframes(b''.join(self.frames))
+            wf.close()
+            print(' [ Done ]')
+        except Exception:
+            print(' [ Error ]')
 
 
 def main(filename, outfile=False):
@@ -242,6 +262,7 @@ def main(filename, outfile=False):
     audio.print_details()
     print('type:', type(audio.frames[0]), 'size: ', len(audio.frames[0]))
     audio.play()
+    print('\n\n')
     new_audio = audio.remove_noise()
     new_audio.play()
     if outfilename:
