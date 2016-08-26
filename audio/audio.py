@@ -29,39 +29,50 @@ class Audio:
         elif frames:
             self.loadfromframes(frames)
 
+    def get_frames(self, framecount=400, overlap=240):
+        """
+        Return Frames of value.
+        """
+        frames = []
+        for i in range(0, len(self.sampdata_dec), framecount - overlap):
+            frames.append(self.sampdata_dec[i:i + framecount])
+        return frames
+
     def get_decimal_amps(self):
         """
+        Tested fine.. Working.
+
         it calculates the decimal equivalent of all the samples
         and store it's value in self.framed_dec list object.
         It is used for further processing of audio signal.
         """
-        self.frames_dec = []
-        for frame in self.frames:
+        self.sampdata_dec = []
+        for i in range(0, len(self.sampdata_bytes), 2):
             dt = []
-            if frame:
-                for i in range(0, len(frame), 2):
-                    dt = []
-                    dt.append(frame[i])
-                    dt.append(frame[i + 1])
-                    bt_dt = bytes(dt)
-                    decimal_val = int.from_bytes(
-                        bt_dt, byteorder='little', signed=True)
-                    # print(decimal_val)
-                    self.frames_dec.append(decimal_val)
+            dt.append(self.sampdata_bytes[i])
+            dt.append(self.sampdata_bytes[i + 1])
+            bt_dt = bytes(dt)
+            decimal_val = int.from_bytes(
+                bt_dt, byteorder='little', signed=True)
+            self.sampdata_dec.append(decimal_val)
 
-    def loadfromframes(self, frames,
-                       framerate=8000,
-                       channels=1,
-                       samplewidth=2):
+    def loadfromsampdata(self, sampbytes=None,
+                         sampdec=None,
+                         framerate=8000,
+                         channels=1,
+                         samplewidth=2):
         """
         Load audio data from list of frames data
         it is assumed to have chunk size of 400
         """
-        self.frames = frames
+        if sampbytes:
+            self.sampdata_bytes = sampbytes
+        if sampdec:
+            self.sampdata_dec = sampdec
+
         self.framerate = framerate
         self.channels = channels
         self.samplewidth = samplewidth
-        self.nframes = len(frames)
         self.filesize = self.nframes * self.samplewidth + 44
         self.duration = float(self.nframes / self.framerate)
         self.loaded = True
@@ -82,11 +93,13 @@ class Audio:
             print(' [ done ]')
             self.filename = filename
 
-            self.frames = []
-            self.sampdata = bytes(wf.readframes(wf.getnframes()))
-            for i in range(0, len(self.sampdata), self.CHUNK):
-                self.frames.append(self.sampdata[i:i + self.CHUNK])
+            self.sampdata_bytes = bytes(wf.readframes(wf.getnframes()))
+            self.get_decimal_amps()  # get sample value in signed int format
 
+            # get sample data in frame with
+            self.frames_dec = self.get_frames(framecount=400, overlap=240)
+
+            # basic information about audio file
             self.framerate = wf.getframerate()
             self.channels = wf.getnchannels()
             self.samplewidth = wf.getsampwidth()
@@ -94,8 +107,6 @@ class Audio:
             self.filesize = self.nframes * self.samplewidth + 44
             self.duration = float(self.nframes / self.framerate)
             self.fileloaded = True
-
-            self.get_decimal_amps()
 
             return True
         print(' [ error ]')
@@ -108,28 +119,27 @@ class Audio:
         audio signal
         """
         result = []
+        # fourier transform are taken for each frames.
+        # with sample of 400 in each frame
+        # and 240 samples being overlapped
 
-        # fourier transform are calculated for 80 samples
-        # and for 80 sample 60 sample are overlapped for
-        # another fourier transform (75% overlap)
-        for i in range(0, len(self.frames_dec), 80):
-            result.extend(list(fft.fft(self.frames_dec[i:i + 80])))
+        frames_dec = self.get_frames()
 
-        self.freq = result
-
+        for frame in frames_dec:
+            result.extend(list(fft.fft(frame)))
         return result
 
     def plot_amp(self):
         # N = len(fftdata)  # length of samples
         # T = 1.0/float(self.framerate)  # sample spacing
-        self.normalized_data = np.array(self.frames_dec)
-        self.normalized_data = self.normalized_data / (2**15)
-        print(list(self.normalized_data))
-        x_time = np.array(range(0, len(self.frames_dec))) / self.framerate
-        print('nd:', self.normalized_data[:10])
+        self.samp_normalized = np.array(self.sampdata_dec)
+        self.samp_normalized = self.samp_normalized / (2**15)
+        # print(list(self.samp_normalized))
+        x_time = np.array(range(0, len(self.sampdata_dec))) / self.framerate
+        # print('nd:', self.samp_normalized[:10])
         fig, ax = plt.subplots()
 
-        ax.plot(x_time, self.normalized_data)
+        ax.plot(x_time, self.samp_normalized)
 
         plt.show()
 
@@ -137,8 +147,10 @@ class Audio:
         fftdata = self.fft()
         # N = len(fftdata)  # length of samples
         # T = 1.0/float(self.framerate)  # sample spacing
-
-        xf = np.linspace(0.0, float(self.framerate), len(self.frames_dec))
+        xf = np.array(range(0, len(fftdata)))
+        # xf = np.linspace(0.0, float(self.framerate), len(self.sampdata_dec))
+        print('len fftdata:', len(fftdata))
+        print('len xf:', len(xf))
 
         fig, ax = plt.subplots()
 
@@ -176,9 +188,9 @@ class Audio:
                             rate=self.framerate,
                             output=True)
 
-            for i in range(0, len(self.frames)):
-                data = self.frames[i]
-                percent = float(i / len(self.frames))
+            for i in range(0, len(self.sampdata_bytes), self.CHUNK):
+                data = self.sampdata_bytes[i:i + self.CHUNK]
+                percent = float(i / len(self.sampdata_bytes))
                 curr_sec = float(percent * self.duration)
                 print("\r %s / %s (%f%%)"
                       % (str(datetime.timedelta(seconds=int(curr_sec))),
@@ -190,68 +202,10 @@ class Audio:
             stream.close()
             p.terminate()
 
-    def get_noise_amp(self):
-        """
-        Get the amplitude of noise by seeing in all the sample values.
-        Not quite good yet, need to implement.
-        """
-        all_values = []
-        for i in range(0, len(self.frames)):
-            for j in range(0, len(self.frames[i]), 2):
-                all_values.append(
-                    self.frames[i][j + 1] * (2**8) + self.frames[i][j])
-        all_values.sort()
-        sum_values = []
-        n = 0
-        for i in range(len(all_values)):
-            if n > 1000:
-                break
-            if all_values[i] not in sum_values:
-                sum_values.append(all_values[i])
-                n += 1
-        return float(sum(sum_values) / n)
-
-    def remove_noise(self, noise_max_amp=3000):
-        """
-        Return New instance of Audio class which has frames value
-        with removed noise value (make amplitude of noise i.e.3000 to
-        zero.
-        info: the audio sample is of 16 bit (2 bytes), there is 1024
-        samples in one frame. Byte are stored in Little Endian format
-        so get equivalent of 2byte in decimal format and if the equivalent
-        value is lesser than noise_max_amp(3000) then make these value zero.
-        """
-        # noise_amp = self.get_noise_amp()
-        # print('noise amp:', noise_amp)
-        print('>> removing noise started', end='')
-        count = 0
-        new_self = self
-        frame = []
-        frames_size = len(self.frames)
-        for i in range(0, frames_size):
-            # print('len:', len(self.frames[i]))
-            frame.append(list(self.frames[i]))
-
-        for i in range(0, len(frame)):
-            # print('len:', len(frame[i]))
-            for j in range(0, len(frame[i]), 2):
-                actual_value = frame[i][j + 1] * (2**8) + frame[i][j]
-                if actual_value <= noise_max_amp:
-                    frame[i][j + 1], frame[i][j] = 0, 0
-                    count += 1
-
-        new_self.frames.clear()
-        for i in range(0, frames_size):
-            new_self.frames.append(bytes(frame[i]))
-
-        print(' [ done ]')
-        print('size: ', len(frame[0]))
-        print('count: ', count)
-        return new_self
-
     def write(self, filename):
         """
-        write the audio data to a file
+        write the audio data to a file.
+        This is not tested because wont be a good use.
         """
         print('Writing Audio file .')
         try:
@@ -259,7 +213,7 @@ class Audio:
             wf.setnchannels(self.channels)
             wf.setsampwidth(self.samplewidth)
             wf.setframerate(self.framerate)
-            wf.writeframes(b''.join(self.frames))
+            wf.writeframes(self.sampdata_bytes)
             wf.close()
             print(' [ Done ]')
         except Exception:
@@ -286,6 +240,7 @@ if __name__ == '__main__':
     aud = Audio()
     aud.loadfromfile('../data/audio/test/1_hello.wav')
     aud.get_decimal_amps()
+    # aud.play()
     # print(aud.frames_dec)
     # aud.plot_amp()
     aud.plot_fftdata()
