@@ -1,9 +1,10 @@
 import recorder
 import sys
 import audio
+import feature_extractor
 
-Recorder = recorder.Recorder()
-Audio = audio.Audio()
+rec = recorder.Recorder()
+aud = audio.Audio()
 
 def print_usage():
     print('Usage: python speech_recognizer [options] [filename]')
@@ -24,7 +25,10 @@ def speech_recognizer_rec(second):
     Record Speech First and Recognize that speech.
     second of record is predefined.
     """
-    
+    aud = rec.record(second)
+    aud.play()
+    mfcc_features = feature_extractor.mfcc_feat.get_features(aud)
+    print('features================\n', mfcc_features)
 
 
 def speech_recognizer_file(filename):
@@ -61,7 +65,7 @@ if __name__ == '__main__':
         help_flag = False
 
     if record_flag:
-        speech_recognizer_rec()
+        speech_recognizer_rec(5)
 
     if file_flag:
         speech_recognizer_file(filename)
