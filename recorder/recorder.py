@@ -25,9 +25,6 @@ class Recorder:
         self.CHANNELS = channels
         self.RATE = rate
 
-    def get_frames(self, framecount=400, overlap=160):
-        for i in range(len(self.
-
     def record(self, record_seconds, outfilename=None):
         """
         It records audio and returns these data in Audio object format.
@@ -61,8 +58,10 @@ class Recorder:
         self.stream.close()
         p.terminate()
 
+        sampdata_bytes = bytes(b''.join(frames))
+
         audio_data=audio.Audio()
-        audio_data.loadfromframes(frames,
+        audio_data.loadfromsampdata(sampbytes=sampdata_bytes,
                                   framerate=self.RATE,
                                   channels=self.CHANNELS)
 

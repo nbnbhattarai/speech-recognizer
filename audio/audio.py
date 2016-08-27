@@ -176,6 +176,7 @@ class Audio:
         """
         Play audio file
         """
+        CHUNK = 400
         print('>> playing audio', end='')
         if not (self.fileloaded or self.loaded):
             print(' [ error ]')
@@ -187,8 +188,8 @@ class Audio:
                             rate=self.framerate,
                             output=True)
 
-            for i in range(0, len(self.sampdata_bytes), self.CHUNK):
-                data = self.sampdata_bytes[i:i + self.CHUNK]
+            for i in range(0, len(self.sampdata_bytes), CHUNK):
+                data = self.sampdata_bytes[i:i + CHUNK]
                 percent = float(i / len(self.sampdata_bytes))
                 curr_sec = float(percent * self.duration)
                 print("\r %s / %s (%f%%)"

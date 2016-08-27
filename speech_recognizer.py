@@ -1,6 +1,9 @@
 import recorder
 import sys
+import audio
 
+Recorder = recorder.Recorder()
+Audio = audio.Audio()
 
 def print_usage():
     print('Usage: python speech_recognizer [options] [filename]')
@@ -16,11 +19,12 @@ def print_help():
         )
 
 
-def speech_recognizer_rec():
+def speech_recognizer_rec(second):
     """
-    Record Speech First and Recognize that speech
+    Record Speech First and Recognize that speech.
+    second of record is predefined.
     """
-    pass
+    
 
 
 def speech_recognizer_file(filename):
