@@ -13,21 +13,50 @@ class Audio:
     in convenient way for processing.
     """
 
-    def __init__(self, filename=False, frames=None):
+    def __init__(self, filename=None, frames=None):
         """
         loadfromfile if filename is provided
         """
         self.fileloaded = False
-        # chunk value changed from 1024 to 400 to perform
-        # Fourier transform and get phonems (for acoustic model)
-        self.CHUNK = 400
-        self.sampledata = []    # sample data in decimal format
-        # it contains all sample values in decimal format
+        self.loaded = False
+
         self.frames_dec = []
+
         if filename:
             self.loadfromfile(filename)
         elif frames:
             self.loadfromframes(frames)
+
+    def loadfromfile(self, filename):
+        """
+        Load Content from wave file of given filename.
+        if file loaded, it returns True
+        else it returns False
+        """
+        print('>> loading file %s' % filename, end='')
+        wf = wave.open(filename, 'rb')
+        if wf:
+            print(' [ done ]')
+            self.filename = filename
+
+            self.sampdata_bytes = bytes(wf.readframes(wf.getnframes()))
+            self.get_decimal_amps()  # get sample value in signed int format
+
+            # get sample data in frame with
+            self.frames_dec = self.get_frames()
+
+            # basic information about audio file
+            self.framerate = wf.getframerate()
+            self.nchannels = wf.getnchannels()
+            self.samplewidth = wf.getsampwidth()
+            self.nframes = wf.getnframes()
+            self.filesize = self.nframes * self.samplewidth + 44
+            self.duration = float(self.nframes / self.framerate)
+            self.fileloaded = True
+
+            return True
+        print(' [ error ]')
+        return False
 
     def get_frames(self, framecount=400, overlap=240):
         """
@@ -58,7 +87,7 @@ class Audio:
 
     def loadfromsampdata(self, sampbytes=None,
                          sampdec=None,
-                         framerate=8000,
+                         framerate=16000,
                          channels=1,
                          samplewidth=2):
         """
@@ -67,8 +96,11 @@ class Audio:
         """
         if sampbytes:
             self.sampdata_bytes = sampbytes
+            self.get_decimal_amps()
+            self.nframes = len(sampbytes)/2
         if sampdec:
             self.sampdata_dec = sampdec
+            self.nframes = len(sampdata_dec)
 
         self.framerate = framerate
         self.channels = channels
@@ -77,40 +109,7 @@ class Audio:
         self.duration = float(self.nframes / self.framerate)
         self.loaded = True
 
-        self.get_decimal_amps()
-
         return True
-
-    def loadfromfile(self, filename):
-        """
-        Load Content from wave file of given filename.
-        if file loaded, it returns True
-        else it returns False
-        """
-        print('>> loading file %s' % filename, end='')
-        wf = wave.open(filename, 'rb')
-        if wf:
-            print(' [ done ]')
-            self.filename = filename
-
-            self.sampdata_bytes = bytes(wf.readframes(wf.getnframes()))
-            self.get_decimal_amps()  # get sample value in signed int format
-
-            # get sample data in frame with
-            self.frames_dec = self.get_frames(framecount=400, overlap=240)
-
-            # basic information about audio file
-            self.framerate = wf.getframerate()
-            self.channels = wf.getnchannels()
-            self.samplewidth = wf.getsampwidth()
-            self.nframes = wf.getnframes()
-            self.filesize = self.nframes * self.samplewidth + 44
-            self.duration = float(self.nframes / self.framerate)
-            self.fileloaded = True
-
-            return True
-        print(' [ error ]')
-        return False
 
     def fft(self):
         """
