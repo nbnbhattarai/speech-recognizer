@@ -1,0 +1,9 @@
+hello
+what
+read
+speech
+you
+are
+deep
+neural
+network
