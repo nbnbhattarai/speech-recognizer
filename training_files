@@ -1,0 +1,39 @@
+./data/audio/training/hello_0.wav hello
+./data/audio/training/hello_1.wav hello
+./data/audio/training/hello_2.wav hello
+./data/audio/training/hello_3.wav hello
+./data/audio/training/hello_4.wav hello
+./data/audio/training/hello_5.wav hello
+./data/audio/training/hello_6.wav hello
+
+./data/audio/training/what_0.wav what
+./data/audio/training/what_1.wav what
+./data/audio/training/what_2.wav what
+./data/audio/training/what_3.wav what
+./data/audio/training/what_4.wav what
+./data/audio/training/what_5.wav what
+./data/audio/training/what_6.wav what
+
+./data/audio/training/speech_0.wav speech
+./data/audio/training/speech_1.wav speech
+./data/audio/training/speech_2.wav speech
+./data/audio/training/speech_3.wav speech
+./data/audio/training/speech_4.wav speech
+./data/audio/training/speech_5.wav speech
+./data/audio/training/speech_6.wav speech
+
+./data/audio/training/neural_0.wav neural
+./data/audio/training/neural_1.wav neural
+./data/audio/training/neural_2.wav neural
+./data/audio/training/neural_3.wav neural
+./data/audio/training/neural_4.wav neural
+./data/audio/training/neural_5.wav neural
+./data/audio/training/neural_6.wav neural
+
+./data/audio/training/read_0.wav read
+./data/audio/training/read_1.wav read
+./data/audio/training/read_2.wav read
+./data/audio/training/read_3.wav read
+./data/audio/training/read_4.wav read
+./data/audio/training/read_5.wav read
+./data/audio/training/read_6.wav read

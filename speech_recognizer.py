@@ -1,10 +1,12 @@
+import recognition
 import recorder
 import sys
 import audio
 import feature_extractor
-
+from decision_maker import DM
 rec = recorder.Recorder()
 aud = audio.Audio()
+
 
 def print_usage():
     print('Usage: python speech_recognizer [options] [filename]')
@@ -17,7 +19,28 @@ def print_help():
         " -r  --record                  record and translate audio\n" +
         " -f  --file [filename]         translate from audio file\n" +
         " -h  --help                    print help.\n"
-        )
+    )
+
+
+def speech_recognize_aud(aud):
+    """
+    Given Audio data, recognize the speech and return
+    the value
+    """
+    mfcc_features = feature_extractor.mfcc_feat.get_features(aud)
+    feature_list = list(mfcc_features.flatten())
+    print(feature_list)
+    return feature_list
+
+
+def speech_recognition_next():
+    with recognition.recognition.Microphone() as source:
+        print('Speck >>>')
+        audio = recognition.recognizer.listen(source)
+    try:
+        print('Spoken word:', recognition.speech_rec(audio))
+    except Exception as e:
+        print('Error occured:', str(e))
 
 
 def speech_recognizer_rec(second):
@@ -25,10 +48,23 @@ def speech_recognizer_rec(second):
     Record Speech First and Recognize that speech.
     second of record is predefined.
     """
+    dm = DM()
+    dm.load('training_files_out')
+    print('words trained till now:', set([w[1] for w in dm.feature_word]))
+    input('Press Enter to recognize word.')
     aud = rec.record(second)
     aud.play()
-    mfcc_features = feature_extractor.mfcc_feat.get_features(aud)
-    print('features================\n', mfcc_features)
+    features = feature_extractor.mfcc_feat.get_features(aud)
+    features = list(features.flatten())
+    word = dm.get_near_word(features)
+    print('word recognized:', word)
+    yn = input('is this correct ?')
+    if yn == 'n' or yn == 'N':
+        wd = input('what is the actual word ?')
+        dm.add_feature(features, wd)
+    else:
+        dm.add_feature(features, word)
+    dm.save('training_files_out')
 
 
 def speech_recognizer_file(filename):
@@ -36,20 +72,27 @@ def speech_recognizer_file(filename):
     Recognize speec in given audio file
     Valid Audio Files : 'wave',
     """
-    pass
+    aud = audio.Audio()
+    aud.loadfromfile(filename)
+    return speech_recognize_aud(aud)
 
 
 if __name__ == '__main__':
     argv = sys.argv
     argc = len(argv)
+    next_recog = False
     if argc < 2:
         print_usage()
+
+    if '-n' in argv:
+        next_recog = True
+
     if '-f' in argv or '--file' in argv:
         if '-f' in argv:
             f_index = argv.index('-f')
         else:
             f_index = argv.index('--file')
-        filename = argv[f_index+1]
+        filename = argv[f_index + 1]
         file_flag = True
     else:
         file_flag = False
@@ -64,8 +107,11 @@ if __name__ == '__main__':
     else:
         help_flag = False
 
+    if next_recog:
+        speech_recognition_next()
+
     if record_flag:
-        speech_recognizer_rec(5)
+        speech_recognizer_rec(2)
 
     if file_flag:
         speech_recognizer_file(filename)

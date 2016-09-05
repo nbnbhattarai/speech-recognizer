@@ -31,20 +31,20 @@ class Recorder:
         if outfilename is given it also writes the data in disk with
         the given filename.
         """
-        self.wave_output_filename=outfilename
-        p=pyaudio.PyAudio()
-        self.stream=p.open(format=self.FORMAT,
+        self.wave_output_filename = outfilename
+        p = pyaudio.PyAudio()
+        self.stream = p.open(format=self.FORMAT,
                              channels=self.CHANNELS,
                              rate=self.RATE,
                              input=True,
                              frames_per_buffer=self.CHUNK)
         print('>> recording...')
 
-        frames=[]
+        frames = []
         for i in range(0, int(self.RATE / self.CHUNK * record_seconds)):
-            data=self.stream.read(self.CHUNK)
-            curr_sec=int(i / self.RATE * self.CHUNK)
-            percent=curr_sec / record_seconds * 100
+            data = self.stream.read(self.CHUNK)
+            curr_sec = int(i / self.RATE * self.CHUNK)
+            percent = curr_sec / record_seconds * 100
             print("\r %s / %s (%f%%)"
                   % (str(datetime.timedelta(seconds=curr_sec)),
                      str(datetime.timedelta(seconds=(record_seconds - 1))),
@@ -60,15 +60,15 @@ class Recorder:
 
         sampdata_bytes = bytes(b''.join(frames))
 
-        audio_data=audio.Audio()
+        audio_data = audio.Audio()
         audio_data.loadfromsampdata(sampbytes=sampdata_bytes,
-                                  framerate=self.RATE,
-                                  channels=self.CHANNELS)
+                                    framerate=self.RATE,
+                                    channels=self.CHANNELS)
 
         # if outfilename if given, then write to that file
         # else only audio data is returned
         if outfilename:
-            wf=wave.open(outfilename, 'wb')
+            wf = wave.open(outfilename, 'wb')
             wf.setnchannels(self.CHANNELS)
             wf.setsampwidth(p.get_sample_size(self.FORMAT))
             wf.setframerate(self.RATE)
@@ -79,7 +79,7 @@ class Recorder:
 
 
 def main(filename, duration):
-    recorder=Recorder()
+    recorder = Recorder()
     recorder.record(filename, duration)
 
 if __name__ == '__main__':
