@@ -29,8 +29,17 @@ def speech_recognize_aud(aud):
     """
     mfcc_features = feature_extractor.mfcc_feat.get_features(aud)
     feature_list = list(mfcc_features.flatten())
-    print(feature_list)
-    return feature_list
+    dm = DM()
+    dm.load('training_files_out')
+    word = dm.get_near_word(feature_list)
+    print('word recognized:', word)
+    yn = input('is this correct?')
+    if yn == 'n' or yn == 'N':
+        wd = input('what is the actual word ?')
+        dm.add_feature(feature_list, wd)
+    else:
+        dm.add_feature(feature_list, word)
+    dm.save('training_files_out')
 
 
 def speech_recognition_next():
@@ -74,7 +83,7 @@ def speech_recognizer_file(filename):
     """
     aud = audio.Audio()
     aud.loadfromfile(filename)
-    return speech_recognize_aud(aud)
+    speech_recognize_aud(aud)
 
 
 if __name__ == '__main__':
